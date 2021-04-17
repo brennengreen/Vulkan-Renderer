@@ -9,6 +9,8 @@
 #include <cstring>
 #include <vector>
 
+#include "window.h"
+
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
 	auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -29,29 +31,27 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 
 class Application {
 public:
+	static constexpr int WIDTH = 800;
+	static constexpr int HEIGHT = 600;
 	Application(void) {}
-	Application(uint32_t w, uint32_t h) : width(w), height(h) {}
 	~Application(void)
 	{
 		if (enable_validation_layers) {
 			DestroyDebugUtilsMessengerEXT(instance, debug_messenger, nullptr);
 		}
 		vkDestroyInstance(instance, nullptr);
-		glfwDestroyWindow(window);
-		glfwTerminate();
 	}
 	void run()
 	{
-		init_window();
 		init_vulkan();
 		main_loop();
 	}
 private:
-	GLFWwindow * window;
-	uint32_t width = 800;
-	uint32_t height = 600;
+	Window window{ WIDTH, HEIGHT, "Vulkan" };
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debug_messenger;
+
+	std::string name;
 
 	const std::vector<const char *> validation_layers = {
 		"VK_LAYER_KHRONOS_validation"
@@ -63,14 +63,6 @@ private:
 		const bool enable_validation_layers = true;
 	#endif
 private:
-	void init_window()
-	{
-		glfwInit();
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-		window = glfwCreateWindow(width, height, "Vulkan", nullptr, nullptr);
-	}
-
 	void init_vulkan()
 	{
 		create_instance();
@@ -79,7 +71,7 @@ private:
 
 	void main_loop()
 	{
-		while (!glfwWindowShouldClose(window))
+		while (!window.should_close())
 		{
 			glfwPollEvents();
 		}

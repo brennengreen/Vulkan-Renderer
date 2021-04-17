@@ -11,11 +11,11 @@
 #define HEIGHT 600
 
 int main() {
-	Application app(WIDTH, HEIGHT);
+	Application vk_app{};
 
 	try 
 	{
-		app.run();
+		vk_app.run();
 	}
 	catch (const std::exception & e) 
 	{
