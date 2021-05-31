@@ -8,9 +8,39 @@
 #include <cstdlib>
 #include <cstring>
 #include <vector>
+#include <optional>
 
 #include "window.h"
 
+struct QueueFamilyIndices {
+	std::optional<uint32_t> graphicsFamily;
+
+	bool is_complete() {
+		return graphicsFamily.has_value();
+	}
+};
+
+QueueFamilyIndices find_queue_families(VkPhysicalDevice device) {
+	QueueFamilyIndices indices;
+	uint32_t queue_family_count = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
+
+	std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
+
+	int i = 0;
+	for (const auto &queue_family : queue_families) {
+		if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			indices.graphicsFamily = i;
+		}
+
+		if (indices.is_complete()) break;
+
+		i++;
+	}
+
+	return indices;
+}
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
 	auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -67,14 +97,41 @@ private:
 	{
 		create_instance();
 		setup_debug_messenger();
+		pick_physical_device();
 	}
-
 	void main_loop()
 	{
 		while (!window.should_close())
 		{
 			glfwPollEvents();
 		}
+	}
+
+	void pick_physical_device() {
+		VkPhysicalDevice physical_device = VK_NULL_HANDLE;
+		uint32_t device_count = 0;
+		vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
+		if (device_count == 0) {
+			throw std::runtime_error("Failed to find GPUs with Vulkan Support!");
+		}
+
+		std::vector<VkPhysicalDevice> devices(device_count);
+		vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
+		for (const auto &device : devices) {
+			if (is_device_suitable(device)) {
+				physical_device = device;
+				break;
+			}
+		}
+
+		if (physical_device == VK_NULL_HANDLE) {
+			throw std::runtime_error("Failed to find a suitable GPU!");
+		}
+	}
+
+	bool is_device_suitable(VkPhysicalDevice device) {
+		QueueFamilyIndices indices = find_queue_families(device);
+		return indices.is_complete();
 	}
 
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
