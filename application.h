@@ -66,6 +66,7 @@ public:
 	Application(void) {}
 	~Application(void)
 	{
+		vkDestroyDevice(device, nullptr);
 		if (enable_validation_layers) {
 			DestroyDebugUtilsMessengerEXT(instance, debug_messenger, nullptr);
 		}
@@ -77,11 +78,18 @@ public:
 		main_loop();
 	}
 private:
+	// Windowing / Instance
 	Window window{ WIDTH, HEIGHT, "Vulkan" };
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debug_messenger;
-
 	std::string name;
+
+	// Physical Device
+	VkPhysicalDevice physical_device = VK_NULL_HANDLE;
+	
+	// Logical Device
+	VkDevice device;
+	VkQueue graphics_queue;
 
 	const std::vector<const char *> validation_layers = {
 		"VK_LAYER_KHRONOS_validation"
@@ -98,6 +106,7 @@ private:
 		create_instance();
 		setup_debug_messenger();
 		pick_physical_device();
+		create_logical_device();
 	}
 	void main_loop()
 	{
@@ -107,8 +116,52 @@ private:
 		}
 	}
 
+	void create_logical_device() {
+		// Find all info needed for device creation
+
+		// Queues
+		QueueFamilyIndices indices = find_queue_families(physical_device);
+
+		VkDeviceQueueCreateInfo queue_create_info{};
+		queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		queue_create_info.queueFamilyIndex = indices.graphicsFamily.value();
+		queue_create_info.queueCount = 1;
+
+		float queue_priority = 1.0f;
+		queue_create_info.pQueuePriorities = &queue_priority;
+
+		// Enabled Features
+		VkPhysicalDeviceFeatures device_features{};
+
+		// Create Device
+		VkDeviceCreateInfo create_info{};
+		create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		create_info.pQueueCreateInfos = &queue_create_info;
+		create_info.queueCreateInfoCount = 1;
+
+		create_info.pEnabledFeatures = &device_features;
+
+		// Legacy Compatability
+		create_info.enabledExtensionCount = 0;
+
+		if (enable_validation_layers) {
+			create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
+			create_info.ppEnabledLayerNames = validation_layers.data();
+		}
+		else {
+			create_info.enabledLayerCount = 0;
+		}
+
+		// Instantiate Device
+		if (vkCreateDevice(physical_device, &create_info, nullptr, &device) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create logical device!");
+		}
+
+		// Get Device Queues
+		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphics_queue);
+	}
+
 	void pick_physical_device() {
-		VkPhysicalDevice physical_device = VK_NULL_HANDLE;
 		uint32_t device_count = 0;
 		vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
 		if (device_count == 0) {
