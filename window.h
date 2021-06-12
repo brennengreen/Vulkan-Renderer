@@ -16,10 +16,10 @@ public:
 		glfwTerminate();
 	}
 	bool should_close();
+	GLFWwindow * window;
 
 private:
 	void initWindow();
-	GLFWwindow * window;
 	uint32_t width = 800;
 	uint32_t height = 600;
 	std::string windowName;
