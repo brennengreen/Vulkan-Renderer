@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\shaders">
+      <UniqueIdentifier>{7e428552-a6ac-49de-916c-be6f43e12ed2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shaderout">
+      <UniqueIdentifier>{b6346069-3df0-4ba5-8801-144916454989}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -26,5 +32,22 @@
     <ClInclude Include="window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="compile.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shaders\triangle.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\triangle.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaderout\frag.spv">
+      <Filter>Source Files\shaderout</Filter>
+    </None>
+    <None Include="shaderout\vert.spv">
+      <Filter>Source Files\shaderout</Filter>
+    </None>
   </ItemGroup>
 </Project>
